@@ -223,40 +223,44 @@ public class Api_Client {
     }
 
     @SuppressWarnings("unchecked")
-    public String callApi(String endpoint, HashMap<String, String> params)  {
-        String rgResultDecode = "";
-        HashMap<String, String> rgParams = new HashMap<String, String>();
-        rgParams.put("endpoint", endpoint);
+    public void callApi(String endpoint, HashMap<String, String> params)  {
 
-        if (params != null) {
-            rgParams.putAll(params);
-        }
+        new Thread(() -> {
+            String rgResultDecode = "";
+            HashMap<String, String> rgParams = new HashMap<String, String>();
+            rgParams.put("endpoint", endpoint);
 
-        String api_host = api_url + endpoint;
-        HashMap<String, String> httpHeaders = getHttpHeaders(endpoint, rgParams, api_key, api_secret);
-        try{
-            System.out.println(api_host);
-            rgResultDecode = request(api_host, "POST", rgParams, httpHeaders);
-        }catch ( Exception e){
-            System.out.println("여기"+e);
-        }
-
-        if (!rgResultDecode.startsWith("error")) {
-            System.out.println("에러 아님");
-            // json �Ľ�
-            HashMap<String, String> result;
-            try {
-                result = new ObjectMapper().readValue(rgResultDecode,
-                        HashMap.class);
-
-                System.out.println("==== ��� ��� ====");
-                System.out.println(result.get("status").toString());
-            } catch (IOException e) {
-                System.out.println("오류 "+e);
+            if (params != null) {
+                rgParams.putAll(params);
             }
-        }else{
-            System.out.println("에러");
-        }
-        return rgResultDecode;
+
+            String api_host = api_url + endpoint;
+            HashMap<String, String> httpHeaders = getHttpHeaders(endpoint, rgParams, api_key, api_secret);
+            try{
+                System.out.println(api_host);
+                rgResultDecode = request(api_host, "POST", rgParams, httpHeaders);
+            }catch ( Exception e){
+                System.out.println("여기"+e);
+            }
+
+            if (!rgResultDecode.startsWith("error")) {
+                System.out.println("에러 아님");
+                // json �Ľ�
+                HashMap<String, String> result;
+                try {
+                    result = new ObjectMapper().readValue(rgResultDecode,
+                            HashMap.class);
+
+                    System.out.println("==== ��� ��� ====");
+                    System.out.println(result.get("status").toString());
+                } catch (IOException e) {
+                    System.out.println("오류 "+e);
+                }
+            }else{
+                System.out.println("에러");
+            }
+            //return rgResultDecode;
+        }).start();
+
     }
 }
