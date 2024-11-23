@@ -27,8 +27,11 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.json.JSONException;
+
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.concurrent.ExecutionException;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -37,12 +40,15 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class DetailActivity extends AppCompatActivity {
-     Button button ;
+    Button buyBtn;
+    Button sellBtn ;
     private CandleStickChart candleStickChart;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detail);  // activity_detail.xml로 설정
+        buyBtn = (Button) findViewById(R.id.buyBtn);
+        sellBtn = (Button) findViewById(R.id.sellBtn);
 //        candleStickChart = findViewById(R.id.candleStickChart);
         String coinName = getIntent().getStringExtra("market");
         fetchCandleData(coinName.substring(4,coinName.length()));
@@ -73,7 +79,7 @@ public class DetailActivity extends AppCompatActivity {
         l.setEnabled(false);
 
         // String market = ;
-        button = (Button) findViewById(R.id.sellBtn);
+
 //        if (button == null) {
 //            Log.e("ButtonError", "sellBtn 버튼을 찾을 수 없습니다.");
 //        } else {
@@ -84,7 +90,21 @@ public class DetailActivity extends AppCompatActivity {
 //                }
 //            });
 //        }
-        button.setOnClickListener(new View.OnClickListener(){
+        buyBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                TradeCoin tradeCoin = new TradeCoin();
+                try {
+                    String coinPrice =tradeCoin.getCoinPrice("BTC");
+                    Toast.makeText(DetailActivity.this, "coinPrice: "+coinPrice, Toast.LENGTH_SHORT).show();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                } catch (JSONException | ExecutionException | InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        });
+        sellBtn.setOnClickListener(new View.OnClickListener(){
 
             @Override
             public void onClick(View view) {
