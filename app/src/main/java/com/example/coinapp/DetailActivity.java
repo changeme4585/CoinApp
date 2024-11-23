@@ -22,8 +22,12 @@ import com.google.gson.JsonObject;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import java.io.IOException;
 import java.util.ArrayList;
 
 import retrofit2.Call;
@@ -33,6 +37,7 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class DetailActivity extends AppCompatActivity {
+     Button button ;
     private CandleStickChart candleStickChart;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,8 +71,35 @@ public class DetailActivity extends AppCompatActivity {
 
         Legend l = candleStickChart.getLegend();
         l.setEnabled(false);
-        // String market = ;
 
+        // String market = ;
+        button = (Button) findViewById(R.id.sellBtn);
+//        if (button == null) {
+//            Log.e("ButtonError", "sellBtn 버튼을 찾을 수 없습니다.");
+//        } else {
+//            button.setOnClickListener(new View.OnClickListener() {
+//                @Override
+//                public void onClick(View view) {
+//                    Log.d("ButtonClick", "sds");
+//                }
+//            });
+//        }
+        button.setOnClickListener(new View.OnClickListener(){
+
+            @Override
+            public void onClick(View view) {
+
+            TradeCoin tradeCoin = new TradeCoin();
+            try {
+                tradeCoin.sell_coin("50.0000","TFUEL");
+            } catch (IOException e) {
+                System.out.println("매도 에러 "+e);
+                throw new RuntimeException(e);
+            }
+                Toast.makeText(DetailActivity.this, "sellBtn 클릭됨", Toast.LENGTH_SHORT).show();
+                Log.d("ButtonClick", "sds");
+            }
+        });
     }
     private void fetchCandleData(String coinName) {
         Retrofit retrofit = new Retrofit.Builder()
