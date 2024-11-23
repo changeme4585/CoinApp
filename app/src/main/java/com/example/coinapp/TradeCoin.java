@@ -23,6 +23,9 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.FutureTask;
 
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -37,21 +40,34 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class TradeCoin {
 
-    public String getCoinPrice(String coinName) throws IOException, JSONException {
-        String URL = "https://api.bithumb.com/public/transaction_history/"+coinName+"_KRW";
-        OkHttpClient client = new OkHttpClient();
-        Request request = new Request.Builder()
-                .url(URL)
-                .get()
-                .build();
-        Response response = client.newCall(request).execute();
-        ResponseBody body = response.body();
-        JSONObject json = new JSONObject(body.string());
-        JSONArray dataArray= json.getJSONArray("data");
+    public String getCoinPrice(String coinName) throws IOException, JSONException, ExecutionException, InterruptedException {
 
-        JSONObject json1 = new JSONObject(dataArray.get(dataArray.length()-1).toString());
-        String coinPrice = json1.get("price").toString();
-        return coinPrice;
+
+        Callable<String> callable = () -> {
+            String URL = "https://api.bithumb.com/public/transaction_history/"+coinName+"_KRW";
+
+            OkHttpClient client = new OkHttpClient();
+            Request request = new Request.Builder()
+                    .url(URL)
+                    .get()
+                    .build();
+            Response response = client.newCall(request).execute();
+            ResponseBody body = response.body();
+            JSONObject json = new JSONObject(body.string());
+            JSONArray dataArray= json.getJSONArray("data");
+
+            JSONObject json1 = new JSONObject(dataArray.get(dataArray.length()-1).toString());
+            String coinPrice = json1.get("price").toString();
+            // ... (네트워크 요청 코드)
+            return coinPrice;
+        };
+
+        FutureTask<String> futureTask = new FutureTask<>(callable);
+        new Thread(futureTask).start();
+        return futureTask.get(); // 결과를 반환할 때까지 대기
+
+
+
     }
    /* public String getCoinPrice(String coinName) throws IOException, JSONException {
         String coinPrice = "";
