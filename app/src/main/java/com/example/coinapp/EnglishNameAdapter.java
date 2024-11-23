@@ -39,6 +39,7 @@ public class EnglishNameAdapter extends RecyclerView.Adapter<EnglishNameAdapter.
         holder.itemView.setOnClickListener(v -> {
             // 클릭 시 새로운 Activity로 이동하며 마켓 코드 전달
             Intent intent = new Intent(context, DetailActivity.class);
+            intent.putExtra("coinName",englishNames.get(position));
             intent.putExtra("market", markets.get(position));  // 마켓 코드 추가
             context.startActivity(intent);
         });
