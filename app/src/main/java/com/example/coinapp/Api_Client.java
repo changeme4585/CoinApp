@@ -6,6 +6,9 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -223,9 +226,9 @@ public class Api_Client {
     }
 
     @SuppressWarnings("unchecked")
-    public void callApi(String endpoint, HashMap<String, String> params)  {
+    public String callApi(String endpoint, HashMap<String, String> params) throws ExecutionException, InterruptedException {
 
-        new Thread(() -> {
+        Callable<String> callable = () -> {
             String rgResultDecode = "";
             HashMap<String, String> rgParams = new HashMap<String, String>();
             rgParams.put("endpoint", endpoint);
@@ -259,8 +262,11 @@ public class Api_Client {
             }else{
                 System.out.println("에러");
             }
-            //return rgResultDecode;
-        }).start();
+            return rgResultDecode;
 
+        };
+        FutureTask<String> futureTask = new FutureTask<>(callable);
+        new Thread(futureTask).start();
+        return futureTask.get(); // 결과를 반환할 때까지 대기
     }
 }
