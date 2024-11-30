@@ -50,8 +50,10 @@ public class DetailActivity extends AppCompatActivity {
         buyBtn = (Button) findViewById(R.id.buyBtn);
         sellBtn = (Button) findViewById(R.id.sellBtn);
 //        candleStickChart = findViewById(R.id.candleStickChart);
-        String coinName = getIntent().getStringExtra("market");
-        fetchCandleData(coinName.substring(4,coinName.length()));
+
+        String coinCode = getIntent().getStringExtra("market");
+        String coinName = coinCode.substring(4,coinCode.length());
+        fetchCandleData(coinName);
         candleStickChart = findViewById(R.id.candleStickChart);
         candleStickChart.setHighlightPerDragEnabled(true);
 
@@ -95,8 +97,9 @@ public class DetailActivity extends AppCompatActivity {
             public void onClick(View view) {
                 TradeCoin tradeCoin = new TradeCoin();
                 try {
-                    String coinPrice =tradeCoin.getCoinPrice("BTC");
-                    Toast.makeText(DetailActivity.this, "coinPrice: "+coinPrice, Toast.LENGTH_SHORT).show();
+                    //String coinPrice =tradeCoin.getCoinPrice(coinName);
+                    tradeCoin.buy_coin(coinName,6000);
+                    //Toast.makeText(DetailActivity.this, "coinPrice: "+coinPrice, Toast.LENGTH_SHORT).show();
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 } catch (JSONException | ExecutionException | InterruptedException e) {
@@ -112,7 +115,7 @@ public class DetailActivity extends AppCompatActivity {
             TradeCoin tradeCoin = new TradeCoin();
             try {
                 tradeCoin.sell_coin("50.0000","TFUEL");
-            } catch (IOException e) {
+            } catch (IOException | ExecutionException | InterruptedException e) {
                 System.out.println("매도 에러 "+e);
                 throw new RuntimeException(e);
             }
