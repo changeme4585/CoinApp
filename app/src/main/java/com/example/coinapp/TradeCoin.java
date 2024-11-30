@@ -104,42 +104,47 @@ public class TradeCoin {
         });
         return coinPrice;
     }*/
-//    public  void buy_coin(Api_Client api, String coinName,int price){
-//        String coinPrice = getCoinPrice(coinName);
-//        HashMap<String, String> rgParams = new HashMap<String, String>();
-//        rgParams.put("currency", coinName);
-//        String result1 = api.callApi("/info/balance", rgParams);
-//
-//        JSONObject json = new JSONObject(result1);
-//        String data = json.getString("data"); //string()쓰기
-//
-//        JSONObject json1 = new JSONObject(data);
-//        String total_krw = json1.getString("total_krw").toString();  //보유 자산 구하기
-//
-//        if( Double.parseDouble(total_krw)<price){
-//            return "0";
-//        }
-//
-//        Double unit = price/Double.parseDouble(coinPrice)*0.69;
-//        if(Double.parseDouble(coinPrice)*unit<=1000) {
-//            return ;
-//        }
-//        if(Double.parseDouble(coinPrice)*unit>Double.parseDouble(total_krw)*0.69&Double.parseDouble(total_krw)<500){
-//            return ;
-//        }
-//        DecimalFormat decimalFormat = new DecimalFormat("#.####");
-//
-//        // 잘라내기
-//        String formattedNumber = decimalFormat.format(unit);
-//
-//        HashMap<String, String> rgParams1 = new HashMap<String, String>();
-//        rgParams1.put("units", formattedNumber); //소수점 4자리 맞추기=코인수량
-//        rgParams1.put("order_currency", coinName); //매수 하려는 코인 이름
-//        rgParams1.put("payment_currency", "KRW"); // 매수하려는 통화
-//        api.callApi("/trade/market_buy", rgParams1);
-//
-//    }
-    public  void  sell_coin(String units,String order_currency) throws IOException{
+    public  void buy_coin(String coinName,int cashAmount) throws JSONException, IOException, ExecutionException, InterruptedException {
+        UserInfo userInfo = new UserInfo();
+        String key = userInfo.api_key;
+        String sec = userInfo.sec_key;
+        Api_Client api = new Api_Client(key,sec);
+
+        String coinPrice = getCoinPrice(coinName);
+        HashMap<String, String> rgParams = new HashMap<String, String>();
+        rgParams.put("currency", coinName);
+        String result1 = api.callApi("/info/balance", rgParams);
+
+        JSONObject json = new JSONObject(result1);
+        String data = json.getString("data"); //string()쓰기
+
+        JSONObject json1 = new JSONObject(data);
+        String total_krw = json1.getString("total_krw").toString();  //보유 자산 구하기
+       /* System.out.println("total_krw: "+total_krw);
+        if( Double.parseDouble(total_krw)<cashAmount){
+            return ;
+        }*/
+
+        Double unit = Double.parseDouble(total_krw)/Double.parseDouble(coinPrice)*0.69;
+        /*if(Double.parseDouble(coinPrice)*unit<=1000) {
+            return ;
+        }
+        if(Double.parseDouble(coinPrice)*unit>Double.parseDouble(total_krw)*0.69&Double.parseDouble(total_krw)<500){
+            return ;
+        }*/
+        DecimalFormat decimalFormat = new DecimalFormat("#.####");
+
+        // 잘라내기
+        String formattedNumber = decimalFormat.format(unit);
+
+        HashMap<String, String> rgParams1 = new HashMap<String, String>();
+        rgParams1.put("units", formattedNumber); //소수점 4자리 맞추기=코인수량
+        rgParams1.put("order_currency", coinName); //매수 하려는 코인 이름
+        rgParams1.put("payment_currency", "KRW"); // 매수하려는 통화
+        api.callApi("/trade/market_buy", rgParams1);
+
+    }
+    public  void  sell_coin(String units,String order_currency) throws IOException, ExecutionException, InterruptedException {
 
         //OkHttpClient client = new OkHttpClient();
         UserInfo userInfo = new UserInfo();
