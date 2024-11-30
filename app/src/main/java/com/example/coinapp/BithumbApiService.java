@@ -15,4 +15,7 @@ public interface BithumbApiService {
     @GET("public/candlestick/{coin_pair}")
     Call<JsonObject> getCandleData(@Path("coin_pair") String coinPair);
 
+    @GET("public/ticker/{coin}")
+    Call<JsonObject> getTicker(@Path("coin") String coin); // {coin} 부분을 동적으로 설정
+
 }
