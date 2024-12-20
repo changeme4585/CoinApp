@@ -5,27 +5,46 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- EditText -->
-    <EditText
-        android:id="@+id/editTextFilter"
+    <!-- 상단 버튼 레이아웃 -->
+    <LinearLayout
+        android:id="@+id/topButtonLayout"
+        android:orientation="horizontal"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="48dp"
-        android:hint="검색어를 입력하세요"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:weightSum="3"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/recyclerView" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
-    <!-- RecyclerView -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerView"
+        <Button
+            android:id="@+id/buttonCoinList"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="코인목록" />
+
+        <Button
+            android:id="@+id/buttonOwnedCoins"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="보유중인 코인" />
+
+        <Button
+            android:id="@+id/buttonTradeHistory"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="매매기록" />
+    </LinearLayout>
+
+    <!-- 프래그먼트가 들어갈 컨테이너 -->
+    <FrameLayout
+        android:id="@+id/fragmentContainer"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:scrollbars="vertical"
-        app:layout_constraintTop_toBottomOf="@+id/editTextFilter"
+        app:layout_constraintTop_toBottomOf="@+id/topButtonLayout"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
-
 </androidx.constraintlayout.widget.ConstraintLayout>
