@@ -104,7 +104,7 @@ public class TradeCoin {
         });
         return coinPrice;
     }*/
-    public  void buy_coin(String coinName,int cashAmount) throws JSONException, IOException, ExecutionException, InterruptedException {
+    public  String buy_coin(String coinName,int cashAmount) throws JSONException, IOException, ExecutionException, InterruptedException {
         UserInfo userInfo = new UserInfo();
         String key = userInfo.api_key;
         String sec = userInfo.sec_key;
@@ -120,10 +120,10 @@ public class TradeCoin {
 
         JSONObject json1 = new JSONObject(data);
         String total_krw = json1.getString("total_krw").toString();  //보유 자산 구하기
-       /* System.out.println("total_krw: "+total_krw);
+
         if( Double.parseDouble(total_krw)<cashAmount){
-            return ;
-        }*/
+            return "현금이 부족합니다.";
+        }
 
         Double unit = Double.parseDouble(total_krw)/Double.parseDouble(coinPrice)*0.69;
         /*if(Double.parseDouble(coinPrice)*unit<=1000) {
@@ -141,11 +141,11 @@ public class TradeCoin {
         rgParams1.put("units", formattedNumber); //소수점 4자리 맞추기=코인수량
         rgParams1.put("order_currency", coinName); //매수 하려는 코인 이름
         rgParams1.put("payment_currency", "KRW"); // 매수하려는 통화
-        api.callApi("/trade/market_buy", rgParams1);
-
+       api.callApi("/trade/market_buy", rgParams1);
+       return "ok";
     }
     public  void  sell_coin(String units,String order_currency) throws IOException, ExecutionException, InterruptedException {
-
+        ///units 매도수량 , order_currency 매도 할 코인이름
         //OkHttpClient client = new OkHttpClient();
         UserInfo userInfo = new UserInfo();
         String key = userInfo.api_key;
