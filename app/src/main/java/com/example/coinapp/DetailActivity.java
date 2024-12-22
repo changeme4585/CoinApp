@@ -2,6 +2,7 @@ package com.example.coinapp;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.os.Bundle;
@@ -24,13 +25,18 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import org.json.JSONException;
+import org.w3c.dom.Text;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 
 import retrofit2.Call;
@@ -42,6 +48,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class DetailActivity extends AppCompatActivity {
     Button buyBtn;
     Button sellBtn ;
+    EditText buyText;
     private CandleStickChart candleStickChart;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,6 +56,8 @@ public class DetailActivity extends AppCompatActivity {
         setContentView(R.layout.activity_detail);  // activity_detail.xml로 설정
         buyBtn = (Button) findViewById(R.id.buyBtn);
         sellBtn = (Button) findViewById(R.id.sellBtn);
+        buyText = findViewById(R.id.buyText);  // 매수 할 현금량
+
 //        candleStickChart = findViewById(R.id.candleStickChart);
 
         String coinCode = getIntent().getStringExtra("market");
@@ -92,14 +101,33 @@ public class DetailActivity extends AppCompatActivity {
 //                }
 //            });
 //        }
+
+
         buyBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 TradeCoin tradeCoin = new TradeCoin();
                 try {
+                    String buyAmount = buyText.getText().toString(); // 매수 할 현금량
                     //String coinPrice =tradeCoin.getCoinPrice(coinName);
-                    tradeCoin.buy_coin(coinName,6000);
-                    //Toast.makeText(DetailActivity.this, "coinPrice: "+coinPrice, Toast.LENGTH_SHORT).show();
+                    Map<String, Object> returnValues = tradeCoin.buy_coin(coinName,Integer.valueOf(buyAmount));
+                    String state = String.valueOf(returnValues.get("state"));
+                    if (!state.equals("ok")) {
+                        Toast.makeText(DetailActivity.this, state, Toast.LENGTH_SHORT).show();
+
+                    }else {
+                        TradeDB dbHelper = new TradeDB(DetailActivity.this);
+                        SQLiteDatabase db = dbHelper.getWritableDatabase();
+                        String amount = String.valueOf(returnValues.get("amount"));
+                        String coinPrice =  String.valueOf(returnValues.get("coinPrice"));
+                        String insertSql = "INSERT INTO " + TradeDB.TABLE_NAME + " (" +
+                                TradeDB.state + ", " +
+                                TradeDB.coinName + ", " +
+                                TradeDB.coinPrice + ", " +
+                                TradeDB.amount + ") VALUES (?, ?, ?, ?);";
+                        db.execSQL(insertSql, new Object[]{"buy", coinName, coinPrice,amount});
+                    }
+
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 } catch (JSONException | ExecutionException | InterruptedException e) {
@@ -114,7 +142,10 @@ public class DetailActivity extends AppCompatActivity {
 
             TradeCoin tradeCoin = new TradeCoin();
             try {
-                tradeCoin.sell_coin("50.0000","TFUEL");
+                tradeCoin.sell_coin("50.0000",coinName);
+
+
+
             } catch (IOException | ExecutionException | InterruptedException e) {
                 System.out.println("매도 에러 "+e);
                 throw new RuntimeException(e);
@@ -137,6 +168,7 @@ public class DetailActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
                 if (response.isSuccessful() && response.body() != null) {
+                    List<Double> coinClose = new ArrayList<>();
                     ArrayList<CandleEntry> entries = new ArrayList<>();
                     JsonArray data = response.body().getAsJsonArray("data");
                     for (JsonElement element : data) {
@@ -146,8 +178,11 @@ public class DetailActivity extends AppCompatActivity {
                         float high = candlestick.get(2).getAsFloat();
                         float low = candlestick.get(3).getAsFloat();
                         float close = candlestick.get(4).getAsFloat();
+                        coinClose.add(Double.parseDouble(String.valueOf(close)));
                         entries.add(new CandleEntry(time, high, low, open, close));
                     }
+                    TechnicalIndicators technicalIndicators = new TechnicalIndicators(coinClose);
+                    System.out.println("RSI값: "+technicalIndicators.calculateRSI(14));
                     setCandleData(entries);
                 }
             }
