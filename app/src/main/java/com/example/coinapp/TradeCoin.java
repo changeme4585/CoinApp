@@ -1,5 +1,6 @@
 package com.example.coinapp;
 
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Build;
 import android.util.Log;
 
@@ -23,6 +24,8 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
@@ -69,47 +72,14 @@ public class TradeCoin {
 
 
     }
-   /* public String getCoinPrice(String coinName) throws IOException, JSONException {
-        String coinPrice = "";
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("https://api.bithumb.com/") // API의 기본 URL
-                .addConverterFactory(GsonConverterFactory.create()) // JSON 파싱을 위한 Gson 추가
-                .build();
 
-        // API 인터페이스 생성
-        BithumbApiService apiService = retrofit.create(BithumbApiService.class);
-
-        // 요청 호출
-        Call<JsonObject> call = apiService.getTicker(coinName+"_KRW");
-        call.enqueue(new Callback<JsonArray>() {
-            @Override
-            public void onResponse(Call<JsonArray> call, retrofit2.Response<JsonArray> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    // JSON 데이터에서 "closing_price" 가져오기
-                    JsonObject data = response.body().getAsJsonObject("data");
-                    String closingPrice = data.get("closing_price").getAsString();
-
-                    Log.d("ClosingPrice", "Closing Price: " + closingPrice);
-                } else {
-                    Log.e("APIError", "Response Error: " + response.code());
-                }
-            }
-
-            @Override
-            public void onFailure(Call<JsonArray> call, Throwable t) {
-                Log.e("APIError", "Failure: " + t.getMessage());
-            }
-
-
-        });
-        return coinPrice;
-    }*/
-    public  String buy_coin(String coinName,int cashAmount) throws JSONException, IOException, ExecutionException, InterruptedException {
+    public  Map<String, Object> buy_coin(String coinName, int cashAmount) throws JSONException, IOException, ExecutionException, InterruptedException {
         UserInfo userInfo = new UserInfo();
         String key = userInfo.api_key;
         String sec = userInfo.sec_key;
         Api_Client api = new Api_Client(key,sec);
-
+        String state = "";
+        Map<String, Object> returnValues = new HashMap<>();
         String coinPrice = getCoinPrice(coinName);
         HashMap<String, String> rgParams = new HashMap<String, String>();
         rgParams.put("currency", coinName);
@@ -122,16 +92,16 @@ public class TradeCoin {
         String total_krw = json1.getString("total_krw").toString();  //보유 자산 구하기
 
         if( Double.parseDouble(total_krw)<cashAmount){
-            return "현금이 부족합니다.";
+            state=  "현금이 부족합니다.";
         }
 
         Double unit = Double.parseDouble(total_krw)/Double.parseDouble(coinPrice)*0.69;
-        /*if(Double.parseDouble(coinPrice)*unit<=1000) {
-            return ;
+        if(Double.parseDouble(coinPrice)*unit<5000) {
+            state= "최소 주문금액은 5000원 입니다." ;
         }
-        if(Double.parseDouble(coinPrice)*unit>Double.parseDouble(total_krw)*0.69&Double.parseDouble(total_krw)<500){
-            return ;
-        }*/
+//        if(Double.parseDouble(coinPrice)*unit>Double.parseDouble(total_krw)*0.69&Double.parseDouble(total_krw)<500){
+//            return ;
+//        }
         DecimalFormat decimalFormat = new DecimalFormat("#.####");
 
         // 잘라내기
@@ -141,8 +111,12 @@ public class TradeCoin {
         rgParams1.put("units", formattedNumber); //소수점 4자리 맞추기=코인수량
         rgParams1.put("order_currency", coinName); //매수 하려는 코인 이름
         rgParams1.put("payment_currency", "KRW"); // 매수하려는 통화
-       api.callApi("/trade/market_buy", rgParams1);
-       return "ok";
+        api.callApi("/trade/market_buy", rgParams1);
+        state = "ok";
+        returnValues.put("state", state);  //상태
+        returnValues.put("amount",formattedNumber); //매수 수량
+        returnValues.put("coinPrice",coinPrice); // 매수 체결 가격
+       return returnValues;
     }
     public  void  sell_coin(String units,String order_currency) throws IOException, ExecutionException, InterruptedException {
         ///units 매도수량 , order_currency 매도 할 코인이름
