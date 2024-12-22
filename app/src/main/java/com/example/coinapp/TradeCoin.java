@@ -118,7 +118,7 @@ public class TradeCoin {
         returnValues.put("coinPrice",coinPrice); // 매수 체결 가격
        return returnValues;
     }
-    public  void  sell_coin(String units,String order_currency) throws IOException, ExecutionException, InterruptedException {
+    public  void  sell_coin(Double units,String order_currency) throws IOException, ExecutionException, InterruptedException {
         ///units 매도수량 , order_currency 매도 할 코인이름
         //OkHttpClient client = new OkHttpClient();
         UserInfo userInfo = new UserInfo();
@@ -126,8 +126,11 @@ public class TradeCoin {
         String sec = userInfo.sec_key;
         Api_Client apiClient = new Api_Client(key,sec);
 
+        DecimalFormat decimalFormat = new DecimalFormat("#.####");
+        String formattedNumber = decimalFormat.format(units);
+        System.out.println("order_currency: "+order_currency);
         HashMap<String, String> rgParams = new HashMap<String, String>();
-        rgParams.put("units", units); //소수점 4자리 맞추기
+        rgParams.put("units", formattedNumber); //소수점 4자리 맞추기
         rgParams.put("order_currency", order_currency); //매도 하려는 코인 이름
         rgParams.put("payment_currency", "KRW"); //매도하려는 통화
         apiClient.callApi("/trade/market_sell", rgParams);
