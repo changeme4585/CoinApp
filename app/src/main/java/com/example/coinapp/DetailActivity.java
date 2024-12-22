@@ -2,6 +2,7 @@ package com.example.coinapp;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -46,6 +47,7 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class DetailActivity extends AppCompatActivity {
+    private  TradeDB tradeDB;
     Button buyBtn;
     Button sellBtn ;
     EditText buyText;
@@ -54,6 +56,9 @@ public class DetailActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detail);  // activity_detail.xml로 설정
+
+        tradeDB = new TradeDB(this);
+        SQLiteDatabase db = tradeDB.getReadableDatabase();
         buyBtn = (Button) findViewById(R.id.buyBtn);
         sellBtn = (Button) findViewById(R.id.sellBtn);
         buyText = findViewById(R.id.buyText);  // 매수 할 현금량
@@ -142,12 +147,40 @@ public class DetailActivity extends AppCompatActivity {
 
             TradeCoin tradeCoin = new TradeCoin();
             try {
-                tradeCoin.sell_coin("50.0000",coinName);
+                Cursor cursor = db.rawQuery("SELECT state, amount, coinName, coinPrice FROM "
+                        + tradeDB.TABLE_NAME
+                        + " WHERE coinName = '" + coinName + "'", null);
 
+                Double units = 0.0;  //해당 코인 보유 수량
+                while (cursor.moveToNext()) {
+                    String state = cursor.getString(cursor.getColumnIndexOrThrow(tradeDB.state));
+                    String amount = cursor.getString(cursor.getColumnIndexOrThrow(tradeDB.amount));
+                    String  coinName = cursor.getString(cursor.getColumnIndexOrThrow(tradeDB.coinName));
+                    String  coinPrice  =  cursor.getString(cursor.getColumnIndexOrThrow(tradeDB.coinPrice));
+                    if (state.equals("buy")){
+                        units+=Double.valueOf(amount);
+                    }else{
+                        units-=Double.valueOf(amount);
+                    }
+                   // System.out.println("coinName: " + coinName + ", state: " + state + ", amount: " + amount + ", coinPrice: " + coinPrice );
+                }
 
+                cursor.close();
+                tradeCoin.sell_coin(units,coinName);
+
+                TradeDB dbHelper = new TradeDB(DetailActivity.this);
+                SQLiteDatabase db = dbHelper.getWritableDatabase();
+                String insertSql = "INSERT INTO " + TradeDB.TABLE_NAME + " (" +
+                        TradeDB.state + ", " +
+                        TradeDB.coinName + ", " +
+                        TradeDB.coinPrice + ", " +
+                        TradeDB.amount + ") VALUES (?, ?, ?, ?);";
+                db.execSQL(insertSql, new Object[]{"sell", coinName, tradeCoin.getCoinPrice(coinName),units});
 
             } catch (IOException | ExecutionException | InterruptedException e) {
                 System.out.println("매도 에러 "+e);
+                throw new RuntimeException(e);
+            } catch (JSONException e) {
                 throw new RuntimeException(e);
             }
                 Toast.makeText(DetailActivity.this, "sellBtn 클릭됨", Toast.LENGTH_SHORT).show();
@@ -197,33 +230,6 @@ public class DetailActivity extends AppCompatActivity {
     private void setCandleData(ArrayList<CandleEntry> entries) {
 
         CandleDataSet dataSet = new CandleDataSet(entries, "Candle Data");
-//        ArrayList<Integer> colors = new ArrayList<>();
-//
-//        for (CandleEntry entry : entries) {
-//            if (entry.getClose() > entry.getOpen()) {
-//                colors.add(Color.RED); // 종가 > 시가
-//            } else {
-//                colors.add(Color.BLUE); // 시가 > 종가
-//            }
-//        }
-
-
-//        dataSet.setColors(colors); // Color for the body
-//        dataSet.setShadowColor(Color.LTGRAY); // Color for the shadow
-//
-//        dataSet.setValueTextSize(10f); // Text size for value labels
-//        dataSet.setDrawValues(false); // Set to true if you want to show the values
-//
-//        CandleData candleData = new CandleData(dataSet);
-//        candleStickChart.setData(candleData);
-//        candleStickChart.invalidate(); // refresh
-//
-//        // Additional configurations
-//        candleStickChart.getDescription().setEnabled(false); // Disable description
-//        candleStickChart.setDrawGridBackground(false); // Hide grid background
-//        candleStickChart.setPinchZoom(true); // Enable pinch zoom
-//        candleStickChart.setDragEnabled(true); // Enable dragging
-//        candleStickChart.setScaleEnabled(true); // Enable scaling
         dataSet.setColor(Color.rgb(80, 80, 80));
         dataSet.setShadowColor(Color.LTGRAY);
         dataSet.setShadowWidth(0.8f);
